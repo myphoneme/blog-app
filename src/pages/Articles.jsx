@@ -54,17 +54,13 @@ const ArticleListingPage = () => {
   // Function to format date and time
   const formatDateTime = (dateString) => {
     const date = new Date(dateString);
-
-    // Add leading zero if needed
     const padZero = (num) => num.toString().padStart(2, "0");
-
     const day = padZero(date.getDate());
     const month = padZero(date.getMonth() + 1);
     const year = date.getFullYear();
     const hours = padZero(date.getHours());
     const minutes = padZero(date.getMinutes());
     const seconds = padZero(date.getSeconds());
-
     return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
   };
 
@@ -77,42 +73,6 @@ const ArticleListingPage = () => {
     return text;
   };
 
-  const staffPicks = [
-    {
-      title: "First-person perspectives on 3 years of war in Ukraine",
-      time: "19h ago",
-      author: "Sarah Frith",
-    },
-    {
-      title: "Via Negative and Negative Capability",
-      time: "Feb 18",
-      author: "Kate Alexandra",
-    },
-    {
-      title: "The day I got a ketamine infusion while my house burned down.",
-      time: "Jan 26",
-      author: "",
-    },
-  ];
-
-  const followedPeople = [
-    {
-      name: "John Doe",
-      bio: "Writer and thinker",
-      image: "https://via.placeholder.com/40",
-    },
-    {
-      name: "Jane Smith",
-      bio: "Tech enthusiast",
-      image: "https://via.placeholder.com/40",
-    },
-    {
-      name: "Alice Johnson",
-      bio: "Health and wellness advocate",
-      image: "https://via.placeholder.com/40",
-    },
-  ];
-
   const profileOptions = [
     "Write",
     "Profile",
@@ -120,13 +80,7 @@ const ArticleListingPage = () => {
     "Stories",
     "Stats",
     "Settings",
-    "Refine recommendations",
-    "Manage publications",
     "Help",
-    "Become a Medium member",
-    "Create a Mastodon account",
-    "Apply for author verification",
-    "Apply to the Partner Program",
   ];
 
   return (
@@ -169,24 +123,6 @@ const ArticleListingPage = () => {
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                />
-              </svg>
-            </button>
-
-            {/* Notification Icon */}
-            <button className="text-gray-600 hover:text-gray-800">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                 />
               </svg>
             </button>
@@ -281,29 +217,6 @@ const ArticleListingPage = () => {
                 </div>
               </Link>
             ))}
-
-          {activeTab === "Following" && (
-            <div className="bg-white p-6 rounded-lg">
-              <h2 className="text-xl font-bold text-gray-800">Following</h2>
-              <div className="mt-4 space-y-4">
-                {followedPeople.map((person, index) => (
-                  <div key={index} className="flex items-center space-x-4">
-                    <img
-                      src={person.image}
-                      alt={person.name}
-                      className="w-10 h-10 rounded-full"
-                    />
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-800">
-                        {person.name}
-                      </h3>
-                      <p className="text-xs text-gray-500">{person.bio}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Fixed Sidebar */}
