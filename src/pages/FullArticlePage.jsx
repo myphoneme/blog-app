@@ -42,7 +42,12 @@ const FullArticlePage = () => {
       {/* Header */}
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-6 flex justify-between items-center">
-          <div className="text-2xl font-bold text-gray-800">Medium</div>
+          <div className="text-2xl font-bold text-gray-800"> <img
+            src="http://myphoneme.com/assets/img/logopng.png"
+            alt="Phoneme logo"
+            width={120}
+            height={120}
+          /></div>
           <button
             onClick={() => navigate(-1)}
             className="text-gray-600 hover:text-gray-800"
