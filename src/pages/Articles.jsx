@@ -1,4 +1,3 @@
-// export default ArticleListingPage;
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ArticleCard from "../components/ArticleCard";
@@ -7,6 +6,69 @@ import TopicsList from "../components/TopicsList";
 import TabNavigation from "../components/TabNavigation";
 import { postsAPI, categoriesAPI } from "../services/api";
 import { useTheme } from "../context/ThemeContext";
+
+const FeaturedTabContent = ({ articles, isLoading, isDarkMode }) => {
+  if (isLoading) {
+    return <LoadingArticles />;
+  }
+
+  // Filter and sort featured articles (most recent first)
+  const featuredArticles = articles
+    .filter((article) => article.is_featured)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  if (featuredArticles.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <div
+          className={`${
+            isDarkMode ? "bg-gray-800/60" : "bg-white"
+          } rounded-lg p-8 shadow-sm inline-block min-w-[300px]`}
+        >
+          <div
+            className={`${isDarkMode ? "text-gray-400" : "text-gray-500"} mb-4`}
+          >
+            <svg
+              className="w-12 h-12 mx-auto"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+              />
+            </svg>
+          </div>
+          <h3
+            className={`text-lg font-medium ${
+              isDarkMode ? "text-gray-100" : "text-gray-900"
+            } mb-2`}
+          >
+            No featured articles yet
+          </h3>
+          <p
+            className={`text-sm ${
+              isDarkMode ? "text-gray-400" : "text-gray-500"
+            } mb-4`}
+          >
+            Check back later for our featured content picks.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {featuredArticles.map((article) => (
+        <ArticleCard key={article.id} article={article} />
+      ))}
+    </div>
+  );
+};
 
 const FollowingTabContent = () => {
   const isLoggedIn = false;
@@ -416,6 +478,12 @@ const ArticleListingPage = () => {
           >
             {activeTab === "Following" ? (
               <FollowingTabContent />
+            ) : activeTab === "Featured" ? (
+              <FeaturedTabContent
+                articles={allArticles}
+                isLoading={isLoading}
+                isDarkMode={isDarkMode}
+              />
             ) : error ? (
               typeof error === "string" ? (
                 <div
