@@ -11,6 +11,13 @@ const MainHeader = ({ isLoggedIn }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsProfileDropdownOpen(false);
+    navigate("/");
+    window.location.reload(); // Refresh to update auth state
+  };
+
   const profileOptions = [
     { label: "Write", icon: "✍️", action: () => navigate("/write") },
     { label: "Profile", icon: "👤", action: () => navigate("/profile") },
@@ -19,6 +26,7 @@ const MainHeader = ({ isLoggedIn }) => {
     { label: "Stats", icon: "📊", action: () => navigate("/stats") },
     { label: "Settings", icon: "⚙️", action: () => navigate("/settings") },
     { label: "Help", icon: "❓", action: () => navigate("/help") },
+    { label: "Logout", icon: "🚪", action: handleLogout },
   ];
 
   const handleSearch = (e) => {
@@ -43,11 +51,11 @@ const MainHeader = ({ isLoggedIn }) => {
     <header
       className={`${
         isDarkMode
-          ? "bg-gray-900 text-white"
+          ? "bg-gray-900 text-white border-b border-gray-800"
           : isHomePage
-          ? "bg-[#f2efe6]"
-          : "bg-white text-gray-800"
-      } shadow transition-colors duration-200`}
+          ? "bg-[#f2efe6] text-gray-800 border-b border-gray-200"
+          : "bg-white text-gray-800 border-b border-gray-200"
+      } transition-colors duration-200`}
     >
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         {/* Brand Logo */}
@@ -71,11 +79,11 @@ const MainHeader = ({ isLoggedIn }) => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search articles..."
-                className={`w-full px-4 py-2 pr-10 border ${
+                className={`w-full px-4 py-2 pr-10 ${
                   isDarkMode
                     ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400"
                     : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
-                } rounded-full focus:outline-none focus:ring-2 focus:ring-[#FF6B00] text-sm transition-colors duration-200`}
+                } border rounded-full focus:outline-none focus:ring-2 focus:ring-[#FF6B00] text-sm transition-colors duration-200`}
               />
               <button
                 type="submit"
@@ -133,7 +141,7 @@ const MainHeader = ({ isLoggedIn }) => {
               {/* Write Article Button */}
               <button
                 onClick={handleWriteArticle}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-full bg-[#FF6B00] hover:bg-[#E65D00] text-white transition-colors duration-200`}
+                className="flex items-center space-x-2 px-4 py-2 rounded-full bg-[#FF6B00] hover:bg-[#E65D00] text-white transition-colors duration-200"
               >
                 <svg
                   className="w-5 h-5"
@@ -154,14 +162,12 @@ const MainHeader = ({ isLoggedIn }) => {
               {/* Profile Picture with Dropdown */}
               <div className="relative">
                 <button
-                  className={`text-current hover:opacity-80 transition-opacity duration-200`}
+                  className="text-current hover:opacity-80 transition-opacity duration-200"
                   onClick={() =>
                     setIsProfileDropdownOpen(!isProfileDropdownOpen)
                   }
                 >
-                  <div
-                    className={`w-10 h-10 rounded-full bg-[#FF6B00] flex items-center justify-center text-white font-bold transition-colors duration-200`}
-                  >
+                  <div className="w-10 h-10 rounded-full bg-[#FF6B00] flex items-center justify-center text-white font-bold transition-colors duration-200">
                     A
                   </div>
                 </button>

@@ -1,5 +1,7 @@
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 import { FaFacebook, FaEnvelope } from "react-icons/fa";
 
 const GoogleIcon = () => (
@@ -31,69 +33,319 @@ const GoogleIcon = () => (
 
 const SignInModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
+  const [activeTab, setActiveTab] = useState("signin");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   if (!isOpen) return null;
 
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const formBody = new URLSearchParams();
+      formBody.append("username", formData.email);
+      formBody.append("password", formData.password);
+
+      const response = await fetch("http://fastapi.phoneme.in/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          accept: "application/json",
+        },
+        body: formBody,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.access_token);
+        onClose();
+        navigate("/articles");
+      } else {
+        setError(
+          typeof data.detail === "string" ? data.detail : "Invalid credentials"
+        );
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("http://fastapi.phoneme.in/users", {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const signInBody = new URLSearchParams();
+        signInBody.append("username", formData.email);
+        signInBody.append("password", formData.password);
+
+        const loginResponse = await fetch("http://fastapi.phoneme.in/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            accept: "application/json",
+          },
+          body: signInBody,
+        });
+
+        const loginData = await loginResponse.json();
+
+        if (loginResponse.ok) {
+          localStorage.setItem("token", loginData.access_token);
+          onClose();
+          navigate("/articles");
+        } else {
+          setError(
+            "Registration successful but couldn't sign in automatically. Please sign in manually."
+          );
+        }
+      } else {
+        setError(data.detail || "Registration failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Registration error:", err);
+      setError("An error occurred during registration. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 backdrop-blur-md flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
       <motion.div
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -50 }}
-        className="relative bg-white p-8 rounded-lg shadow-lg w-full max-w-md"
+        className={`relative ${
+          isDarkMode ? "bg-gray-800" : "bg-white"
+        } p-6 rounded-lg shadow-xl w-full max-w-sm mx-4 z-10`}
       >
         {/* Close Button */}
         <button
-          className="absolute top-4 right-4 text-gray-600 text-2xl"
+          className={`absolute top-3 right-3 ${
+            isDarkMode
+              ? "text-gray-400 hover:text-gray-300"
+              : "text-gray-600 hover:text-gray-800"
+          } text-xl font-bold`}
           onClick={onClose}
         >
-          &times;
+          ×
         </button>
 
-        {/* Modal Title */}
-        <h2 className="text-center text-2xl font-semibold mb-6">
-          Join Phoneme
-        </h2>
+        {/* Logo and Slogan */}
+        <div className="text-center mb-6">
+          <img
+            src="http://myphoneme.com/assets/img/logopng.png"
+            alt="Phoneme logo"
+            className="w-24 h-auto mx-auto mb-2"
+          />
+          <p
+            className={`text-xs ${
+              isDarkMode ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
+            Share your stories with the world
+          </p>
+        </div>
 
-        {/* Signup Options */}
-        <div className="flex flex-col space-y-4">
+        {/* Tabs */}
+        <div
+          className={`flex mb-4 border-b ${
+            isDarkMode ? "border-gray-700" : "border-gray-200"
+          }`}
+        >
           <button
-            onClick={() => {
-              console.log("Google signup clicked");
-              navigate("/articles");
-            }}
-            className="flex items-center justify-start gap-x-3 w-full border border-gray-300 py-2 px-4 rounded-full font-medium cursor-pointer"
+            className={`flex-1 py-2 text-sm font-medium ${
+              activeTab === "signin"
+                ? "text-[#FF6B00] border-b-2 border-[#FF6B00]"
+                : isDarkMode
+                ? "text-gray-400"
+                : "text-gray-500"
+            }`}
+            onClick={() => setActiveTab("signin")}
           >
-            <GoogleIcon /> <span>Sign up with Google</span>
+            Sign In
           </button>
-
           <button
-            onClick={() => console.log("Facebook signup clicked")}
-            className="flex items-center justify-start gap-x-3 w-full border border-gray-300 py-2 px-4 rounded-full font-medium cursor-pointer"
+            className={`flex-1 py-2 text-sm font-medium ${
+              activeTab === "signup"
+                ? "text-[#FF6B00] border-b-2 border-[#FF6B00]"
+                : isDarkMode
+                ? "text-gray-400"
+                : "text-gray-500"
+            }`}
+            onClick={() => setActiveTab("signup")}
           >
-            <FaFacebook className="text-blue-600 w-5 h-5" />
-            <span>Sign up with Facebook</span>
-          </button>
-          <button
-            onClick={() => console.log("Email signup clicked")}
-            className="flex items-center justify-start gap-x-3 w-full border border-gray-300 py-2 px-4 rounded-full font-medium cursor-pointer"
-          >
-            <FaEnvelope className="text-gray-500 w-5 h-5" />
-            <span>Sign up with Email</span>
+            Sign Up
           </button>
         </div>
 
-        {/* Sign In Link */}
-        <p className="text-center mt-4 text-gray-500">
-          Already have an account?{" "}
-          <span className="text-green-600 cursor-pointer">Sign in</span>
-        </p>
+        {/* Error Message */}
+        {error && (
+          <div
+            className={`mb-4 p-2 ${
+              isDarkMode
+                ? "bg-red-900/50 text-red-300"
+                : "bg-red-100 text-red-600"
+            } text-xs rounded`}
+          >
+            {error}
+          </div>
+        )}
+
+        {/* Sign In Form */}
+        {activeTab === "signin" && (
+          <form onSubmit={handleSignIn} className="space-y-3">
+            <div>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border ${
+                  isDarkMode
+                    ? "bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
+                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                } rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#FF6B00]`}
+                required
+              />
+            </div>
+            <div>
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border ${
+                  isDarkMode
+                    ? "bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
+                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                } rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#FF6B00]`}
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-[#FF6B00] text-white py-2 rounded-md text-sm font-medium hover:bg-[#E65D00] transition-colors duration-200 disabled:opacity-50"
+            >
+              {isLoading ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
+        )}
+
+        {/* Sign Up Form */}
+        {activeTab === "signup" && (
+          <form onSubmit={handleSignUp} className="space-y-3">
+            <div>
+              <input
+                type="text"
+                name="name"
+                placeholder="Full Name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border ${
+                  isDarkMode
+                    ? "bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
+                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                } rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#FF6B00]`}
+                required
+              />
+            </div>
+            <div>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border ${
+                  isDarkMode
+                    ? "bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
+                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                } rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#FF6B00]`}
+                required
+              />
+            </div>
+            <div>
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border ${
+                  isDarkMode
+                    ? "bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
+                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                } rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#FF6B00]`}
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-[#FF6B00] text-white py-2 rounded-md text-sm font-medium hover:bg-[#E65D00] transition-colors duration-200 disabled:opacity-50"
+            >
+              {isLoading ? "Creating account..." : "Create Account"}
+            </button>
+          </form>
+        )}
 
         {/* Terms and Privacy */}
-        <p className="text-xs text-center text-gray-400 mt-4">
-          Click "Sign up" to agree to Medium's{" "}
-          <span className="underline">Terms of Service</span> and acknowledge
-          that Medium's <span className="underline">Privacy Policy</span>{" "}
-          applies to you.
+        <p
+          className={`text-xs text-center mt-4 ${
+            isDarkMode ? "text-gray-500" : "text-gray-400"
+          }`}
+        >
+          By signing up, you agree to our{" "}
+          <a href="#" className="underline hover:text-[#FF6B00]">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="#" className="underline hover:text-[#FF6B00]">
+            Privacy Policy
+          </a>
+          .
         </p>
       </motion.div>
     </div>

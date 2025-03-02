@@ -14,57 +14,85 @@ const ArticleCard = ({ article }) => {
     <Link
       to={`/article/${article.id}`}
       className={`block ${
-        isDarkMode ? "bg-gray-800" : "bg-white"
-      } p-6 rounded-lg mb-6 hover:shadow-lg transition-all duration-200 ${
-        isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"
+        isDarkMode ? "bg-gray-900/40" : "bg-white"
+      } rounded-lg border ${
+        isDarkMode ? "border-gray-800/40" : "border-gray-100"
+      } transition-all duration-200 group ${
+        isDarkMode
+          ? "hover:bg-gray-800/60 hover:border-gray-700/60"
+          : "hover:shadow-md hover:shadow-gray-200/80 hover:border-gray-200"
       }`}
     >
-      <div className="flex justify-between">
-        <div className="w-2/3">
+      <div className="flex flex-col md:flex-row md:items-center p-6">
+        <div className="flex-1 min-w-0 md:pr-6">
           <h2
             className={`text-xl font-bold ${
-              isDarkMode ? "text-gray-100" : "text-gray-800"
-            }`}
+              isDarkMode ? "text-white" : "text-gray-900"
+            } mb-2 group-hover:text-[#FF6B00] transition-colors duration-200`}
           >
             {article.title}
           </h2>
           <p
             className={`${
               isDarkMode ? "text-gray-300" : "text-gray-600"
-            } mt-2 line-clamp-3`}
+            } mb-4 line-clamp-2 text-sm leading-relaxed`}
           >
             {truncateText(article.post)}
           </p>
-          <div className="mt-4 flex items-center space-x-2 text-sm">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-7 h-7 rounded-full bg-[#FF6B00] flex items-center justify-center text-white text-sm font-medium">
+                {article.created_user.name.charAt(0)}
+              </div>
+              <span
+                className={`text-sm font-medium ${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
+                {article.created_user.name}
+              </span>
+            </div>
             <span
-              className={`${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
-            >
-              {formatDateTime(article.created_at)} · By{" "}
-              {article.created_user.name}
-            </span>
-            <span
-              className={`${isDarkMode ? "text-gray-600" : "text-gray-300"}`}
+              className={`text-sm ${
+                isDarkMode ? "text-gray-600" : "text-gray-300"
+              }`}
             >
               ·
             </span>
             <span
-              className={`${
+              className={`text-sm ${
+                isDarkMode ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              {formatDateTime(article.created_at)}
+            </span>
+            <span
+              className={`text-sm ${
+                isDarkMode ? "text-gray-600" : "text-gray-300"
+              }`}
+            >
+              ·
+            </span>
+            <span
+              className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                 isDarkMode
-                  ? "text-blue-400 bg-blue-900/50"
-                  : "text-blue-600 bg-blue-50"
-              } px-2 py-1 rounded-full text-xs`}
+                  ? "bg-gray-800/60 text-gray-300"
+                  : "bg-gray-100 text-gray-700"
+              }`}
             >
               {article.category.category_name}
             </span>
           </div>
         </div>
-        <div className="w-1/3 flex justify-end">
-          <img
-            src={getFullImageUrl(article.image)}
-            alt={article.title}
-            className="w-full h-48 rounded-lg object-cover"
-          />
-        </div>
+        {article.image && (
+          <div className="mt-4 md:mt-0 md:w-48 md:flex-shrink-0">
+            <img
+              src={getFullImageUrl(article.image)}
+              alt={article.title}
+              className="w-full h-32 md:h-28 object-cover rounded-lg"
+            />
+          </div>
+        )}
       </div>
     </Link>
   );

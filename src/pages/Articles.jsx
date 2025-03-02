@@ -6,14 +6,20 @@ import StaffPicks from "../components/StaffPicks";
 import TopicsList from "../components/TopicsList";
 import TabNavigation from "../components/TabNavigation";
 import { postsAPI, categoriesAPI } from "../services/api";
+import { useTheme } from "../context/ThemeContext";
 
 const FollowingTabContent = () => {
   const isLoggedIn = false;
+  const { isDarkMode } = useTheme();
 
   if (!isLoggedIn) {
     return (
       <div className="text-center py-6">
-        <div className="bg-white rounded-lg p-6 shadow-sm max-w-xl mx-auto">
+        <div
+          className={`${
+            isDarkMode ? "bg-gray-800 text-gray-100" : "bg-white text-gray-900"
+          } rounded-lg p-6 shadow-sm max-w-xl mx-auto`}
+        >
           <div className="mb-4">
             <svg
               className="mx-auto h-10 w-10 text-blue-500"
@@ -29,23 +35,45 @@ const FollowingTabContent = () => {
               />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2
+            className={`text-xl font-semibold mb-2 ${
+              isDarkMode ? "text-gray-100" : "text-gray-900"
+            }`}
+          >
             Discover and Follow Your Favorite Authors
           </h2>
-          <p className="text-sm text-gray-600 mb-6">
+          <p
+            className={`text-sm mb-6 ${
+              isDarkMode ? "text-gray-300" : "text-gray-600"
+            }`}
+          >
             Sign in to personalize your feed and follow authors whose content
             resonates with you. Get notified when they publish new articles.
           </p>
           <div className="space-y-3">
-            <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors duration-200">
+            <button className="w-full bg-[#FF6B00] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#E65D00] transition-colors duration-200">
               Sign In
             </button>
-            <button className="w-full bg-white text-gray-700 px-4 py-2 rounded-md text-sm font-medium border border-gray-300 hover:bg-gray-50 transition-colors duration-200">
+            <button
+              className={`w-full px-4 py-2 rounded-md text-sm font-medium border transition-colors duration-200 ${
+                isDarkMode
+                  ? "bg-gray-700 text-gray-200 border-gray-600 hover:bg-gray-600"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+              }`}
+            >
               Create Account
             </button>
           </div>
-          <div className="mt-6 border-t border-gray-200 pt-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          <div
+            className={`mt-6 border-t pt-4 ${
+              isDarkMode ? "border-gray-700" : "border-gray-200"
+            }`}
+          >
+            <h3
+              className={`text-sm font-semibold mb-3 ${
+                isDarkMode ? "text-gray-100" : "text-gray-900"
+              }`}
+            >
               What you'll get:
             </h3>
             <div className="grid grid-cols-1 gap-3">
@@ -65,7 +93,11 @@ const FollowingTabContent = () => {
                     />
                   </svg>
                 </div>
-                <p className="ml-2 text-xs text-gray-600">
+                <p
+                  className={`ml-2 text-xs ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
                   Personalized article recommendations
                 </p>
               </div>
@@ -85,47 +117,11 @@ const FollowingTabContent = () => {
                     />
                   </svg>
                 </div>
-                <p className="ml-2 text-xs text-gray-600">
-                  Follow your favorite authors
-                </p>
-              </div>
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  <svg
-                    className="h-5 w-5 text-green-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-                <p className="ml-2 text-xs text-gray-600">
-                  New article notifications
-                </p>
-              </div>
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  <svg
-                    className="h-5 w-5 text-green-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-                <p className="ml-2 text-xs text-gray-600">
+                <p
+                  className={`ml-2 text-xs ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
                   Bookmark articles to read later
                 </p>
               </div>
@@ -153,6 +149,7 @@ const ArticleListingPage = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [error, setError] = useState(null);
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     fetchInitialData();
@@ -170,7 +167,7 @@ const ArticleListingPage = () => {
 
   const handleTransition = async (callback) => {
     setIsTransitioning(true);
-    await new Promise((resolve) => setTimeout(resolve, 300)); // Wait for fade out
+    await new Promise((resolve) => setTimeout(resolve, 300));
     callback();
     setIsTransitioning(false);
   };
@@ -368,27 +365,50 @@ const ArticleListingPage = () => {
   };
 
   const LoadingArticles = () => (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-4">
       {[1, 2, 3].map((n) => (
-        <div key={n} className="bg-white p-6 rounded-lg animate-pulse h-48">
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        <div
+          key={n}
+          className={`${
+            isDarkMode ? "bg-gray-800" : "bg-white"
+          } p-6 rounded-lg animate-pulse h-48`}
+        >
+          <div
+            className={`h-4 ${
+              isDarkMode ? "bg-gray-700" : "bg-gray-200"
+            } rounded w-3/4 mb-4`}
+          ></div>
+          <div
+            className={`h-4 ${
+              isDarkMode ? "bg-gray-700" : "bg-gray-200"
+            } rounded w-1/2`}
+          ></div>
         </div>
       ))}
     </div>
   );
 
   return (
-    <div className="min-h-screen">
-      <TabNavigation
-        tabs={["For you", "Following", "Featured"]}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
+    <div
+      className={`min-h-screen ${isDarkMode ? "bg-gray-950" : "bg-gray-100"}`}
+    >
+      <div
+        className={`${
+          isDarkMode
+            ? "border-b border-gray-800/50"
+            : "border-b border-gray-200"
+        } bg-opacity-90 backdrop-blur-sm`}
+      >
+        <TabNavigation
+          tabs={["For you", "Following", "Featured"]}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </div>
 
-      <div className="container mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="container mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-12 gap-8">
         {/* Article List */}
-        <div className="col-span-2">
+        <div className="md:col-span-8">
           <div
             className={`transition-opacity duration-300 ${
               isTransitioning ? "opacity-0" : "opacity-100"
@@ -398,14 +418,20 @@ const ArticleListingPage = () => {
               <FollowingTabContent />
             ) : error ? (
               typeof error === "string" ? (
-                <div className="text-center py-8 text-red-500">{error}</div>
+                <div
+                  className={`text-center py-8 ${
+                    isDarkMode ? "text-red-400" : "text-red-500"
+                  }`}
+                >
+                  {error}
+                </div>
               ) : (
                 error.message
               )
             ) : isLoading ? (
               <LoadingArticles />
             ) : activeTab === "For you" && displayedArticles.length > 0 ? (
-              <div className="space-y-4 animate-fade-in">
+              <div className="space-y-6">
                 {displayedArticles.map((article) => (
                   <ArticleCard key={article.id} article={article} />
                 ))}
@@ -416,16 +442,18 @@ const ArticleListingPage = () => {
           </div>
         </div>
 
-        {/* Fixed Sidebar */}
-        <div className="col-span-1 sticky top-0 h-screen overflow-y-auto">
-          <StaffPicks articles={getStaffPicks()} isLoading={isLoading} />
-          <TopicsList
-            categories={categories}
-            articles={allArticles}
-            selectedCategory={selectedCategory}
-            onCategorySelect={handleCategorySelect}
-            isLoading={isLoading}
-          />
+        {/* Sidebar */}
+        <div className="hidden md:block md:col-span-4">
+          <div className="sticky top-4 space-y-6">
+            <StaffPicks articles={getStaffPicks()} isLoading={isLoading} />
+            <TopicsList
+              categories={categories}
+              articles={allArticles}
+              selectedCategory={selectedCategory}
+              onCategorySelect={handleCategorySelect}
+              isLoading={isLoading}
+            />
+          </div>
         </div>
       </div>
     </div>
