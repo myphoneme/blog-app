@@ -1,21 +1,18 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import { useTheme } from "../context/ThemeContext";
-import { categoriesAPI, postsAPI } from "../services/api";
 
 const CreateArticle = () => {
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
-  const quillRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
-    title: "",
     category_id: "",
+    title: "",
     post: "",
+    created_by: 1,
     image: null,
   });
   const [imagePreview, setImagePreview] = useState(null);
@@ -25,7 +22,8 @@ const CreateArticle = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const data = await categoriesAPI.getAll();
+        const response = await fetch("/api/categories");
+        const data = await response.json();
         setCategories(data);
       } catch (err) {
         console.error("Error fetching categories:", err);
@@ -41,19 +39,13 @@ const CreateArticle = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle rich text editor changes
-  const handleEditorChange = (content, delta, source, editor) => {
-    setFormData((prev) => ({
-      ...prev,
-      post: editor.getHTML(),
-    }));
-  };
-
   // Handle image upload
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setFormData((prev) => ({ ...prev, image: file }));
+
+      // Create preview URL
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -68,106 +60,88 @@ const CreateArticle = () => {
     setIsLoading(true);
     setError(null);
 
-    // Check for authentication
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Please log in to create an article.");
-      setIsLoading(false);
-      return;
-    }
-
-    // Validate required fields
-    if (!formData.title.trim()) {
-      setError("Title is required");
-      setIsLoading(false);
-      return;
-    }
-
-    if (!formData.category_id) {
-      setError("Please select a category");
-      setIsLoading(false);
-      return;
-    }
-
-    if (!formData.post.trim()) {
-      setError("Article content is required");
-      setIsLoading(false);
-      return;
-    }
-
     try {
       const submitData = new FormData();
-      
-      // Format the data
-      submitData.append("title", formData.title.trim());
-      submitData.append("category_id", parseInt(formData.category_id, 10)); // Ensure category_id is a number
-      submitData.append("post", formData.post.trim());
-      submitData.append("created_by", 1); // Send as number instead of string
+      submitData.append("category_id", formData.category_id);
+      submitData.append("title", formData.title);
+
+      // Clean and encode the post content to handle special characters
+      const cleanPost = formData.post
+        .replace(
+          /[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDDFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDE3]/g,
+          ""
+        )
+        .trim();
+
+      submitData.append("post", cleanPost);
+      submitData.append("created_by", formData.created_by);
 
       if (formData.image) {
-        // Ensure proper file name and type
-        const imageFile = new File([formData.image], formData.image.name, {
-          type: formData.image.type,
-        });
-        submitData.append("image", imageFile);
+        submitData.append("image", formData.image);
       }
 
       // Log the formatted data
       console.log("Submitting article with data:");
       for (let [key, value] of submitData.entries()) {
-        console.log(`${key}:`, value instanceof File ? value.name : value);
+        if (key === "post") {
+          console.log(`${key}: [Content length: ${value.length}]`);
+        } else if (key === "image") {
+          console.log(
+            `${key}: ${value.name} (${value.type}, ${value.size} bytes)`
+          );
+        } else {
+          console.log(`${key}: ${value}`);
+        }
       }
 
-      const response = await postsAPI.create(submitData);
-      console.log("API Response:", response);
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        body: submitData,
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      // Log the response status and headers
+      console.log("Response status:", response.status);
+      console.log(
+        "Response headers:",
+        Object.fromEntries(response.headers.entries())
+      );
+
+      // Try to get the response text first
+      const responseText = await response.text();
+      console.log("Raw response:", responseText);
+
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (e) {
+        responseData = { message: responseText };
+      }
+
+      if (!response.ok) {
+        console.error("Error response data:", responseData);
+        throw new Error(
+          responseData.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      console.log("API Response:", responseData);
 
       // Show success message
       setSuccessMessage("Article created successfully!");
       setTimeout(() => {
         setSuccessMessage(null);
-        navigate(`/article/${response.id}`);
+        navigate(`/article/${responseData.id}`);
       }, 1500);
     } catch (err) {
       console.error("Error creating article:", err);
-      if (err.message.includes("Network error")) {
-        setError("Unable to connect to the server. Please check your internet connection and try again.");
-      } else if (err.message.includes("Unauthorized")) {
-        setError("Your session has expired. Please log in again.");
-      } else {
-        setError(err.message || "Failed to create article. Please try again.");
-      }
+      setError(err.message || "Failed to create article. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
-
-  // Quill editor modules and formats configuration
-  const modules = {
-    toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ["bold", "italic", "underline", "strike"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["link", "blockquote"],
-      [{ align: [] }],
-      ["clean"],
-    ],
-    clipboard: {
-      matchVisual: false,
-    },
-  };
-
-  const formats = [
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "list",
-    "bullet",
-    "link",
-    "blockquote",
-    "align",
-  ];
 
   return (
     <div
@@ -202,7 +176,11 @@ const CreateArticle = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-6"
+              encType="multipart/form-data"
+            >
               {/* Title Input */}
               <div>
                 <label
@@ -295,7 +273,7 @@ const CreateArticle = () => {
                 </div>
               </div>
 
-              {/* Rich Text Editor */}
+              {/* Content Textarea */}
               <div>
                 <label
                   className={`block text-sm font-medium mb-2 ${
@@ -304,26 +282,19 @@ const CreateArticle = () => {
                 >
                   Content
                 </label>
-                <div
-                  className={`${
-                    isDarkMode ? "bg-gray-800" : "bg-white"
-                  } rounded-lg border ${
-                    isDarkMode ? "border-gray-700" : "border-gray-300"
-                  }`}
-                >
-                  <ReactQuill
-                    ref={quillRef}
-                    theme="snow"
-                    value={formData.post}
-                    onChange={handleEditorChange}
-                    modules={modules}
-                    formats={formats}
-                    className={`${
-                      isDarkMode ? "text-white" : "text-gray-900"
-                    } h-64`}
-                    preserveWhitespace={true}
-                  />
-                </div>
+                <textarea
+                  name="post"
+                  value={formData.post}
+                  onChange={handleInputChange}
+                  required
+                  rows={6}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDarkMode
+                      ? "bg-gray-800 border-gray-700 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  } focus:outline-none focus:ring-2 focus:ring-[#FF6B00]`}
+                  placeholder="Write your article content here..."
+                />
               </div>
 
               {/* Submit Button */}

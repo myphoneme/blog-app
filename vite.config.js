@@ -13,10 +13,31 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': {
-        target: 'http://fastapi.phoneme.in',
+      "/api": {
+        target: "http://fastapi.phoneme.in",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: (path) => path.replace(/^\/api/, ""),
+        secure: false,
+        ws: true,
+        configure: (proxy, _options) => {
+          proxy.on("error", (err, _req, _res) => {
+            console.log("proxy error", err);
+          });
+          proxy.on("proxyReq", (proxyReq, req, _res) => {
+            console.log("Sending Request to the Target:", req.method, req.url);
+            // Log the request headers
+            console.log("Request Headers:", proxyReq.getHeaders());
+          });
+          proxy.on("proxyRes", (proxyRes, req, _res) => {
+            console.log(
+              "Received Response from the Target:",
+              proxyRes.statusCode,
+              req.url
+            );
+            // Log the response headers
+            console.log("Response Headers:", proxyRes.headers);
+          });
+        },
       },
     },
   },

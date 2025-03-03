@@ -144,69 +144,118 @@ export const postsAPI = {
       // Log the FormData contents for debugging
       console.log("Sending FormData contents:");
       for (let pair of formData.entries()) {
-        console.log(pair[0] + ":", pair[1] instanceof File ? pair[1].name : pair[1]);
+        if (pair[0] === "post") {
+          console.log(`${pair[0]}: [Content length: ${pair[1].length}]`);
+        } else if (pair[0] === "image") {
+          console.log(
+            `${pair[0]}: ${pair[1].name} (${pair[1].type}, ${pair[1].size} bytes)`
+          );
+        } else {
+          console.log(`${pair[0]}: ${pair[1]}`);
+        }
+      }
+
+      // Create a new FormData instance to ensure proper formatting
+      const cleanFormData = new FormData();
+
+      // Clean and append each field exactly as FastAPI expects them
+      for (let [key, value] of formData.entries()) {
+        if (key === "post") {
+          // Clean up the HTML content and ensure it's a string
+          const cleanContent = value.toString().trim();
+          cleanFormData.append(key, cleanContent);
+        } else if (key === "category_id" || key === "created_by") {
+          // Send as string since Form(...) in FastAPI will handle conversion
+          cleanFormData.append(key, value.toString());
+        } else if (key === "image") {
+          // Ensure proper file handling
+          if (value instanceof File) {
+            cleanFormData.append(key, value, value.name);
+          } else {
+            throw new Error("Invalid image file");
+          }
+        } else {
+          cleanFormData.append(key, value.toString().trim());
+        }
       }
 
       const response = await fetch(`${API_BASE_URL}/posts`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          Accept: "application/json",
         },
-        body: formData,
+        body: cleanFormData,
       });
 
       // Log the response status and headers for debugging
       console.log("Response status:", response.status);
-      console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+      console.log(
+        "Response headers:",
+        Object.fromEntries(response.headers.entries())
+      );
 
-      let errorData = null;
+      let responseData = null;
       const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        try {
-          errorData = await response.json();
-        } catch (e) {
-          console.error("Failed to parse error response:", e);
+
+      try {
+        if (contentType && contentType.includes("application/json")) {
+          responseData = await response.json();
+        } else {
+          const text = await response.text();
+          try {
+            responseData = JSON.parse(text);
+          } catch {
+            responseData = { message: text };
+          }
         }
-      } else {
-        try {
-          errorData = { message: await response.text() };
-        } catch (e) {
-          console.error("Failed to read error response:", e);
-        }
+      } catch (e) {
+        console.error("Failed to parse response:", e);
+        responseData = { message: await response.text() };
       }
 
       if (!response.ok) {
-        console.log("Error response data:", errorData);
+        console.log("Error response data:", responseData);
 
         if (response.status === 401) {
           throw new Error("Unauthorized. Please log in again.");
         }
         if (response.status === 403) {
-          throw new Error("Permission denied. Please check your access rights.");
+          throw new Error(
+            "Permission denied. Please check your access rights."
+          );
         }
         if (response.status === 422) {
-          const errorMessage = errorData?.detail 
-            ? (Array.isArray(errorData.detail) 
-                ? errorData.detail.map(err => `${err.loc.join('.')}: ${err.msg}`).join(', ')
-                : errorData.detail)
+          const errorMessage = responseData?.detail
+            ? Array.isArray(responseData.detail)
+              ? responseData.detail
+                  .map((err) => `${err.loc.join(".")}: ${err.msg}`)
+                  .join(", ")
+              : responseData.detail
             : "Invalid input data";
           throw new Error(errorMessage);
         }
         if (response.status === 500) {
-          const errorMessage = errorData?.message || "Server error. Please try again later.";
-          console.error("Server Error Details:", errorData);
-          throw new Error(errorMessage);
+          console.error("Server Error Details:", responseData);
+          const errorMsg =
+            typeof responseData === "string"
+              ? responseData
+              : responseData?.message ||
+                "Server error. Please try again later.";
+          throw new Error(errorMsg);
         }
-        
-        throw new Error(errorData?.message || `Server error: ${response.status}`);
+
+        throw new Error(
+          responseData?.message || `Server error: ${response.status}`
+        );
       }
 
-      return errorData || await response.json();
+      return responseData;
     } catch (error) {
       console.error("API Error:", error);
       if (error.message === "Failed to fetch") {
-        throw new Error("Network error. Please check your connection and try again.");
+        throw new Error(
+          "Network error. Please check your connection and try again."
+        );
       }
       throw error;
     }

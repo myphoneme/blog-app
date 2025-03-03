@@ -12,7 +12,9 @@
   "dependencies": {
     "@mui/material": "^6.4.5",
     "@shadcn/ui": "^0.0.4",
+    "@tailwindcss/typography": "^0.5.16",
     "@tailwindcss/vite": "^4.0.8",
+    "dompurify": "^3.2.4",
     "framer-motion": "^12.4.7",
     "headlessui": "^0.0.0",
     "heroicons": "^2.2.0",
