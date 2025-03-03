@@ -263,7 +263,8 @@ const FullArticlePage = () => {
                     isDarkMode ? "prose-invert" : ""
                   } ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
                 >
-                  {article.post}
+                  {/* {article.post} */}
+                  <div dangerouslySetInnerHTML={{ __html: article.post }} />
                 </div>
               </div>
             </article>

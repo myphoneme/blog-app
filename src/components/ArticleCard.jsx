@@ -37,7 +37,7 @@ const ArticleCard = ({ article }) => {
               isDarkMode ? "text-gray-300" : "text-gray-600"
             } mb-4 line-clamp-2 text-sm leading-relaxed`}
           >
-            {truncateText(article.post)}
+            <div dangerouslySetInnerHTML={{ __html: article.post }} />
           </p>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
