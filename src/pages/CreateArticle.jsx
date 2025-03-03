@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import ArticleForm from "../components/articles/ArticleForm";
 
 const CreateArticle = () => {
   const navigate = useNavigate();
@@ -80,20 +81,6 @@ const CreateArticle = () => {
         submitData.append("image", formData.image);
       }
 
-      // Log the formatted data
-      console.log("Submitting article with data:");
-      for (let [key, value] of submitData.entries()) {
-        if (key === "post") {
-          console.log(`${key}: [Content length: ${value.length}]`);
-        } else if (key === "image") {
-          console.log(
-            `${key}: ${value.name} (${value.type}, ${value.size} bytes)`
-          );
-        } else {
-          console.log(`${key}: ${value}`);
-        }
-      }
-
       const response = await fetch("/api/posts", {
         method: "POST",
         body: submitData,
@@ -102,17 +89,7 @@ const CreateArticle = () => {
         },
       });
 
-      // Log the response status and headers
-      console.log("Response status:", response.status);
-      console.log(
-        "Response headers:",
-        Object.fromEntries(response.headers.entries())
-      );
-
-      // Try to get the response text first
       const responseText = await response.text();
-      console.log("Raw response:", responseText);
-
       let responseData;
       try {
         responseData = JSON.parse(responseText);
@@ -121,13 +98,10 @@ const CreateArticle = () => {
       }
 
       if (!response.ok) {
-        console.error("Error response data:", responseData);
         throw new Error(
           responseData.message || `HTTP error! status: ${response.status}`
         );
       }
-
-      console.log("API Response:", responseData);
 
       // Show success message
       setSuccessMessage("Article created successfully!");
@@ -176,151 +150,16 @@ const CreateArticle = () => {
               </div>
             )}
 
-            <form
+            <ArticleForm
+              formData={formData}
+              imagePreview={imagePreview}
+              categories={categories}
+              isLoading={isLoading}
               onSubmit={handleSubmit}
-              className="space-y-6"
-              encType="multipart/form-data"
-            >
-              {/* Title Input */}
-              <div>
-                <label
-                  htmlFor="title"
-                  className={`block text-sm font-medium mb-2 ${
-                    isDarkMode ? "text-gray-200" : "text-gray-700"
-                  }`}
-                >
-                  Title
-                </label>
-                <input
-                  type="text"
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  required
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-700 text-white"
-                      : "bg-white border-gray-300 text-gray-900"
-                  } focus:outline-none focus:ring-2 focus:ring-[#FF6B00]`}
-                  placeholder="Enter article title"
-                />
-              </div>
-
-              {/* Category Select */}
-              <div>
-                <label
-                  htmlFor="category_id"
-                  className={`block text-sm font-medium mb-2 ${
-                    isDarkMode ? "text-gray-200" : "text-gray-700"
-                  }`}
-                >
-                  Category
-                </label>
-                <select
-                  id="category_id"
-                  name="category_id"
-                  value={formData.category_id}
-                  onChange={handleInputChange}
-                  required
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-700 text-white"
-                      : "bg-white border-gray-300 text-gray-900"
-                  } focus:outline-none focus:ring-2 focus:ring-[#FF6B00]`}
-                >
-                  <option value="">Select a category</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.category_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Image Upload */}
-              <div>
-                <label
-                  htmlFor="image"
-                  className={`block text-sm font-medium mb-2 ${
-                    isDarkMode ? "text-gray-200" : "text-gray-700"
-                  }`}
-                >
-                  Featured Image
-                </label>
-                <div className="flex items-center space-x-4">
-                  <input
-                    type="file"
-                    id="image"
-                    name="image"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className={`block w-full text-sm ${
-                      isDarkMode ? "text-gray-300" : "text-gray-700"
-                    } file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium ${
-                      isDarkMode
-                        ? "file:bg-gray-800 file:text-gray-300"
-                        : "file:bg-gray-100 file:text-gray-700"
-                    } hover:file:bg-[#FF6B00] hover:file:text-white`}
-                  />
-                  {imagePreview && (
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="h-20 w-20 object-cover rounded"
-                    />
-                  )}
-                </div>
-              </div>
-
-              {/* Content Textarea */}
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-2 ${
-                    isDarkMode ? "text-gray-200" : "text-gray-700"
-                  }`}
-                >
-                  Content
-                </label>
-                <textarea
-                  name="post"
-                  value={formData.post}
-                  onChange={handleInputChange}
-                  required
-                  rows={6}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-700 text-white"
-                      : "bg-white border-gray-300 text-gray-900"
-                  } focus:outline-none focus:ring-2 focus:ring-[#FF6B00]`}
-                  placeholder="Write your article content here..."
-                />
-              </div>
-
-              {/* Submit Button */}
-              <div className="flex justify-end space-x-4">
-                <button
-                  type="button"
-                  onClick={() => navigate(-1)}
-                  className={`px-4 py-2 rounded-lg border ${
-                    isDarkMode
-                      ? "border-gray-700 text-gray-300 hover:bg-gray-800"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`px-6 py-2 rounded-lg bg-[#FF6B00] text-white font-medium hover:bg-[#E65D00] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF6B00] ${
-                    isLoading ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                >
-                  {isLoading ? "Publishing..." : "Publish Article"}
-                </button>
-              </div>
-            </form>
+              onChange={handleInputChange}
+              onImageChange={handleImageChange}
+              onCancel={() => navigate(-1)}
+            />
           </div>
         </div>
       </div>

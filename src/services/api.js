@@ -123,7 +123,15 @@ export const postsAPI = {
   getById: async (id) => {
     const response = await fetch(`${API_BASE_URL}/posts/${id}`);
     if (!response.ok) throw new Error("Failed to fetch post");
-    return response.json();
+
+    const data = await response.json();
+
+    // Transform image URL if it's a relative path
+    if (data.image && !data.image.startsWith("http")) {
+      data.image = data.image.replace(/^\//, ""); // Remove leading slash if present
+    }
+
+    return data;
   },
 
   getByCategory: async (categoryId) => {
