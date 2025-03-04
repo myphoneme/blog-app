@@ -2,6 +2,7 @@ import React from "react";
 import { useTheme } from "../../context/ThemeContext";
 import ImageUpload from "./ImageUpload";
 import CategorySelect from "./CategorySelect";
+import QuillEditor from "./QuillEditor";
 
 const ArticleForm = ({
   formData,
@@ -14,6 +15,15 @@ const ArticleForm = ({
   onCancel,
 }) => {
   const { isDarkMode } = useTheme();
+
+  const handleEditorChange = (content) => {
+    onChange({
+      target: {
+        name: "post",
+        value: content,
+      },
+    });
+  };
 
   return (
     <form
@@ -62,7 +72,7 @@ const ArticleForm = ({
         isDarkMode={isDarkMode}
       />
 
-      {/* Content Textarea */}
+      {/* Content Editor */}
       <div>
         <label
           className={`block text-sm font-medium mb-2 ${
@@ -71,19 +81,7 @@ const ArticleForm = ({
         >
           Content
         </label>
-        <textarea
-          name="post"
-          value={formData.post}
-          onChange={onChange}
-          required
-          rows={6}
-          className={`w-full px-4 py-2 rounded-lg border ${
-            isDarkMode
-              ? "bg-gray-800 border-gray-700 text-white"
-              : "bg-white border-gray-300 text-gray-900"
-          } focus:outline-none focus:ring-2 focus:ring-[#FF6B00]`}
-          placeholder="Write your article content here..."
-        />
+        <QuillEditor value={formData.post} onChange={handleEditorChange} />
       </div>
 
       {/* Submit Button */}
