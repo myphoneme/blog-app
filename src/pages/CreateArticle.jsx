@@ -130,13 +130,13 @@ const CreateArticle = () => {
               isDarkMode ? "border-gray-800/40" : "border-gray-100"
             } p-6 md:p-8`}
           >
-            <h1
-              className={`text-2xl font-bold mb-6 ${
+            <h3
+              className={`text-lg font-bold mb-4 ${
                 isDarkMode ? "text-gray-100" : "text-gray-900"
               }`}
             >
               Create New Article
-            </h1>
+            </h3>
 
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
