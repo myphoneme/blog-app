@@ -5,7 +5,7 @@ const CategorySelect = ({ value, onChange, categories, isDarkMode }) => {
     <div>
       <label
         htmlFor="category_id"
-        className={`block text-sm font-medium mb-2 ${
+        className={`block text-sm font-medium mb-1 ${
           isDarkMode ? "text-gray-200" : "text-gray-700"
         }`}
       >
@@ -17,7 +17,7 @@ const CategorySelect = ({ value, onChange, categories, isDarkMode }) => {
         value={value}
         onChange={onChange}
         required
-        className={`w-full px-4 py-2 rounded-lg border ${
+        className={`w-full px-3 py-1.5 rounded-md border ${
           isDarkMode
             ? "bg-gray-800 border-gray-700 text-white"
             : "bg-white border-gray-300 text-gray-900"
