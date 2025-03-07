@@ -13,6 +13,7 @@ const MainHeader = ({ isLoggedIn }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setIsProfileDropdownOpen(false);
     navigate("/");
     window.location.reload(); // Refresh to update auth state

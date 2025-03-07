@@ -54,36 +54,37 @@ const SignInModal = ({ isOpen, onClose }) => {
 
   const handleSignIn = async (e) => {
     e.preventDefault();
-    setError("");
     setIsLoading(true);
+    setError(null);
 
     try {
-      const formBody = new URLSearchParams();
-      formBody.append("username", formData.email);
-      formBody.append("password", formData.password);
+      const signInBody = new URLSearchParams();
+      signInBody.append("username", formData.email);
+      signInBody.append("password", formData.password);
 
-      const response = await fetch("http://fastapi.phoneme.in/login", {
+      const loginResponse = await fetch("http://fastapi.phoneme.in/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           accept: "application/json",
         },
-        body: formBody,
+        body: signInBody,
       });
 
-      const data = await response.json();
+      const loginData = await loginResponse.json();
 
-      if (response.ok) {
-        localStorage.setItem("token", data.access_token);
+      if (loginResponse.ok) {
+        // Store token and user details
+        localStorage.setItem("token", loginData.access_token);
+        localStorage.setItem("user", JSON.stringify(loginData.user)); // Store user details
         onClose();
         navigate("/articles");
       } else {
-        setError(
-          typeof data.detail === "string" ? data.detail : "Invalid credentials"
-        );
+        setError("Login failed. Please try again.");
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      console.error("Login error:", err);
+      setError("An error occurred during login. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -128,6 +129,7 @@ const SignInModal = ({ isOpen, onClose }) => {
 
         if (loginResponse.ok) {
           localStorage.setItem("token", loginData.access_token);
+          localStorage.setItem("user", JSON.stringify(loginData.user));
           onClose();
           navigate("/articles");
         } else {
